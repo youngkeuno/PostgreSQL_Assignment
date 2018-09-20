@@ -1,0 +1,192 @@
+hubway_oliveira=> CREATE TABLE hubway_trips
+(
+seq_id serial NOT NULL,
+hubway_id     bigint,
+  status        character varying(10),
+  duration      integer,
+  start_date    timestamp without time zone,
+  strt_statn    integer,
+  end_date      timestamp without time zone,
+  end_statn     integer,
+  bike_nr       character varying(20),
+  subsc_type    character varying(20),
+  zip_code      character varying(6),
+  birth_date    integer,
+  gender        character varying(10),
+CONSTRAINT hubway_trips_pkey PRIMARY KEY (seq_id)
+)
+;
+CREATE TABLE
+hubway_oliveira=> \copy(seq_id,hubway_id,status,duration,start_date,strt_statn,end_date,end_statn,bike_nr,subsc_type,zip_code,birth_date,gender) FROM '/usr/share/databases/Hubway/h
+ubway_trips.csv' DELIMITER ',' CSV HEADER;
+Invalid command \copy(seq_id,hubway_id,status,duration,start_date,strt_statn,end_date,end_statn,bike_nr,subsc_type,zip_code,birth_date,gender). Try \? for help.
+hubway_oliveira=> \copy hubway_trips(seq_id,hubway_id,status,duration,start_date,strt_statn,end_date,end_statn,bike_nr,subsc_type,zip_code,birth_date,gender) FROM '/usr/share/datab
+ases/Hubway/hubway_trips.csv' DELIMITER ',' CSV HEADER;
+COPY 1579025
+
+hubway_oliveira=> CREATE TABLE hubway_stations
+(
+id serial NOT NULL,
+terminal character varying(6),
+station character varying(100),
+municipal character varying(20),
+lat decimal(9,6),
+lng decimal(9,6),
+status character varying(10),
+CONSTRAINT hubway_stations_pkey PRIMARY KEY (id)
+)
+;
+CREATE TABLE
+hubway_oliveira=> \copy hubway_stations(id,terminal,station,municipal,lat,lng,status) FROM '/usr/share/databases/Hubway/hubway_stations.csv' DELIMITER ',' CSV HEADER;              COPY 142
+
+hubway_oliveira=> select station from hubway_stations where status ='Removed' limit 10;
+                    station
+-----------------------------------------------
+ Boston Medical Center - 721 Mass. Ave.
+ Mayor Thomas M. Menino - Government Center
+ Overland St at Brookline Ave
+ Summer St. / Arch St.
+ New Balance - 38 Guest St.
+ TD Garden - Legends Way
+ Dudley Square
+ Charles Circle - Charles St. at Cambridge St.
+ Boylston at Fairfield
+ Brookline Town Hall / Library Washington St
+(10 rows)
+
+y_oliveira=> select station from hubway_stations where lat>40 and lat<45 and lng<-70
+and lng>-75 ORDER BY station limit 10
+hubway_oliveira-> ;
+                        station
+-------------------------------------------------------
+ 359 Broadway - Broadway at Fayette Street
+ Agganis Arena - 925 Comm Ave.
+ Allston Green District - Commonwealth Ave & Griggs St
+ Andrew Station - Dorchester Ave at Humboldt Pl
+ Andrew Station - Dorchester Ave at Humboldt Pl
+ Aquarium Station - 200 Atlantic Ave.
+ Back Bay / South End Station
+ Ball Square
+ Beacon St at Washington / Kirkland
+ Beacon St / Mass Ave
+(10 rows)
+
+hubway_oliveira=> select hubway_trips.strt_statn, hubway_trips.end_statn, hubway_trips.hubway_id,hubway_stations.lat,hubway_stations.lng from hubway_trips INNER JOIN hubway_stations on hubway_stations.id = hubway_trips.strt_statn where lat>42 and lat<43 and lng<-71.1 and lng>-71 union select hubway_trips.strt_statn, hubway_trips.end_statn, hubway_trips.hubway_id,hubway_stations.lat,hubway_stations.lng from hubway_trips INNER JOIN hubway_stations on hubway_stations.id=hubway_trips.end_statn where lat>42 and lat<43 and lng<-71 and lng>-71.1 ORDER BY hubway_id limit 10;
+ strt_statn | end_statn | hubway_id |    lat    |    lng
+------------+-----------+-----------+-----------+------------
+         23 |        23 |         8 | 42.359677 | -71.059364
+         23 |        23 |         9 | 42.359677 | -71.059364
+         23 |        23 |        10 | 42.359677 | -71.059364
+         23 |        23 |        11 | 42.359677 | -71.059364
+         23 |        23 |        12 | 42.359677 | -71.059364
+         23 |        23 |        13 | 42.359677 | -71.059364
+         23 |        23 |        14 | 42.359677 | -71.059364
+         23 |        23 |        15 | 42.359677 | -71.059364
+         23 |        23 |        16 | 42.359677 | -71.059364
+         47 |        40 |        17 | 42.363871 | -71.050877
+(10 rows)
+
+hubway_oliveira=> Select zip_code,
+   case when LEFT(zip_code,3)='''01' or LEFT(zip_code,3)='''02' THEN 'non-suspect'
+   else 'suspect'
+END
+from hubway_trips limit 10;
+ zip_code |    case
+----------+-------------
+ '97217   | suspect
+ '02215   | non-suspect
+ '02108   | non-suspect
+ '02116   | non-suspect
+ '97214   | suspect
+ '02021   | non-suspect
+ '02140   | non-suspect
+ '02140   | non-suspect
+ '97214   | suspect
+ '01867   | non-suspect
+(10 rows)
+
+hubway_oliveira=> Alter table "suspect_table" Rename column "case" to "flag";                                                                                                [8/894]
+ALTER TABLE
+hubway_oliveira=> select * from suspect_table limit 10;
+ zip_code |    flag
+----------+-------------
+ '97217   | suspect
+ '02215   | non-suspect
+ '02108   | non-suspect
+ '02116   | non-suspect
+ '97214   | suspect
+ '02021   | non-suspect
+ '02140   | non-suspect
+ '02140   | non-suspect
+ '97214   | suspect
+ '01867   | non-suspect
+(10 rows)
+
+hubway_oliveira=> select * from suspect_table where flag='non-suspect' limit 10;
+ zip_code |    flag
+----------+-------------
+ '02215   | non-suspect
+ '02108   | non-suspect
+ '02116   | non-suspect
+ '02021   | non-suspect
+ '02140   | non-suspect
+ '02140   | non-suspect
+ '01867   | non-suspect
+ '01867   | non-suspect
+ '01867   | non-suspect
+ '02446   | non-suspect
+(10 rows)
+
+hubway_oliveira=> Create table suspect_table_duration_new as Select duration,zip_code,
+   case when LEFT(zip_code,3)='''01' or LEFT(zip_code,3)='''02' or zip_code is null and duration<2400000 and duration>60 THEN 'non-suspect'
+   else 'suspect'
+END
+from hubway_trips;
+SELECT 1579025
+hubway_oliveira=> Alter table "suspect_table_duration_new" Rename column "case" to "flag";
+ALTER TABLE
+hubway_oliveira=> select * from suspect_table_duration_new where flag='suspect' limit 10;
+ duration | zip_code |  flag
+----------+----------+---------
+        9 | '97217   | suspect
+       12 | '97214   | suspect
+        8 | '97214   | suspect
+       15 | '97214   | suspect
+     3747 | '97214   | suspect
+     1488 | '60084   | suspect
+     1067 | '60084   | suspect
+      817 | '60084   | suspect
+      607 | '11797   | suspect
+     1192 | '11797   | suspect
+(10 rows)
+
+hubway_oliveira=> Create table suspect_table_duration_new_filtered as Select * from suspect_table_duration_new where flag='suspect';
+SELECT 13088
+
+hubway_oliveira=> Create table my_problem_table1 as Select duration,zip_code,
+hubway_oliveira->    case when LEFT(zip_code,3)!='''01' and LEFT(zip_code,3)!='''02' and not (zip_code is null) and duration>60 and duration<2400000 THEN 'zip-code is not in Massac
+husetts'
+hubway_oliveira->    when duration<60 and (LEFT(zip_code,3)='''01' or LEFT(zip_code,3)='''02') then 'duration too short'
+hubway_oliveira-> when duration>2400000 and (LEFT(zip_code,3)='''01' or LEFT(zip_code,3)='''02') then 'duration too long'
+hubway_oliveira-> else 'multiple problems'
+hubway_oliveira-> end
+hubway_oliveira-> from suspect_table_duration_new_filtered;
+SELECT 13088
+hubway_oliveira=> Alter table "my_problem_table1" Rename column "case" to "problem";
+ALTER TABLE
+hubway_oliveira=> select * from my_problem_table1 limit 10;
+ duration | zip_code |             problem
+----------+----------+----------------------------------
+        9 | '97217   | multiple problems
+       12 | '97214   | multiple problems
+        8 | '97214   | multiple problems
+       15 | '97214   | multiple problems
+     3747 | '97214   | zip-code is not in Massachusetts
+     1488 | '60084   | zip-code is not in Massachusetts
+     1067 | '60084   | zip-code is not in Massachusetts
+      817 | '60084   | zip-code is not in Massachusetts
+      607 | '11797   | zip-code is not in Massachusetts
+     1192 | '11797   | zip-code is not in Massachusetts
+(10 rows)
+
+
