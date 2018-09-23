@@ -189,4 +189,94 @@ hubway_oliveira=> select * from my_problem_table1 limit 10;
      1192 | '11797   | zip-code is not in Massachusetts
 (10 rows)
 
+fanfiction_oliveira=> CREATE TABLE stories_orig
+(
+RATING character varying(5),
+UPDATED character varying(5),
+FAVORITES integer,
+STARRINGCHARS character varying(50),
+CHAPTERS integer,
+COMPLETE boolean,
+COLLECTEDINFO character varying(100),
+GENRE character varying(50),
+DESCRIPTION character varying(100),
+LANGUAGE character varying(50),
+AUTHOR character varying(200),
+URL character varying(500),
+FOLLOWS integer,
+TITLE character varying(200),
+REVIEWS integer,
+PUBLISHED timestamp without time zone,
+WORDS integer,
+CONSTRAINT stories_orig_pkey PRIMARY KEY (URL)
+)
+;
+CREATE TABLE
+
+fanfiction_oliveira=> \copy stories_orig(rating,updated,favorites,starringchars,chapters,complete,collectedinfo,genre,description,language,author,url,follows,title,reviews,published,words) from '/usr/share/databases/Fanfiction/stories_orig.csv' Delimiter ',' CSV HEADER;
+ERROR:  value too long for type character varying(100)
+CONTEXT:  COPY stories_orig, line 2, column collectedinfo: "[u'Rated: K+ - English - Family - Chapters: 1 - Words: 2,403 - Published: 3-14-13 - Harry P. & Rose ..."
+
+fanfiction_oliveira=> drop table stories_orig;
+DROP TABLE
+fanfiction_oliveira=>
+CREATE TABLE stories_orig
+(
+RATING character varying(50),
+UPDATED character varying(50),
+FAVORITES integer,
+STARRINGCHARS character varying(500),
+CHAPTERS integer,
+COMPLETE boolean,
+COLLECTEDINFO character varying(500),
+GENRE character varying(500),
+DESCRIPTION character varying(500),
+LANGUAGE character varying(50),
+AUTHOR character varying(500),
+URL character varying(500),
+FOLLOWS integer,
+TITLE character varying(500),
+REVIEWS integer,
+PUBLISHED timestamp without time zone,
+WORDS integer,
+CONSTRAINT stories_orig_pkey PRIMARY KEY (URL)
+)
+;
+CREATE TABLE
+fanfiction_oliveira=> \copy stories_orig(rating,updated,favorites,starringchars,chapters,complete,collectedinfo,genre,description,language,author,url,follows,title,reviews,publishe
+d,words) from '/usr/share/databases/Fanfiction/stories_orig.csv' Delimiter ',' CSV HEADER;
+ERROR:  duplicate key value violates unique constraint "stories_orig_pkey"
+DETAIL:  Key (url)=(http://www.fanfiction.net/s/9096319/1/Green-Eyed-Monster) already exists.
+CONTEXT:  COPY stories_orig, line 277
+
+fanfiction_oliveira=> DROP TABLE stories_orig;                                                                                                                              [24/657]
+DROP TABLE
+fanfiction_oliveira=>
+CREATE TABLE stories_orig
+( ID Serial NOT NULL,
+RATING character varying(50),
+UPDATED character varying(50),
+FAVORITES integer,
+STARRINGCHARS character varying(500),
+CHAPTERS integer,
+COMPLETE boolean,
+COLLECTEDINFO character varying(500),
+GENRE character varying(500),
+DESCRIPTION character varying(500),
+LANGUAGE character varying(50),
+AUTHOR character varying(500),
+URL character varying(500),
+FOLLOWS integer,
+TITLE character varying(500),
+REVIEWS integer,
+PUBLISHED timestamp without time zone,
+WORDS integer,
+CONSTRAINT stories_orig_pkey PRIMARY KEY (ID)
+)
+;
+CREATE TABLE
+fanfiction_oliveira=> \copy stories_orig(rating,updated,favorites,starringchars,chapters,complete,collectedinfo,genre,description,language,author,url,follows,title,reviews,publishe
+d,words) from '/usr/share/databases/Fanfiction/stories_orig.csv' Delimiter ',' CSV HEADER;
+COPY 613705
+
 
