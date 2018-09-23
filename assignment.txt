@@ -249,6 +249,8 @@ ERROR:  duplicate key value violates unique constraint "stories_orig_pkey"
 DETAIL:  Key (url)=(http://www.fanfiction.net/s/9096319/1/Green-Eyed-Monster) already exists.
 CONTEXT:  COPY stories_orig, line 277
 
+We ended up having duplicate rows. So, we're going to use an id as the primary key. 
+
 fanfiction_oliveira=> DROP TABLE stories_orig;                                                                                                                              [24/657]
 DROP TABLE
 fanfiction_oliveira=>
@@ -279,4 +281,25 @@ fanfiction_oliveira=> \copy stories_orig(rating,updated,favorites,starringchars,
 d,words) from '/usr/share/databases/Fanfiction/stories_orig.csv' Delimiter ',' CSV HEADER;
 COPY 613705
 
+Here is my Python file:
+
+import csv
+import sys
+
+csv.field_size_limit(sys.maxsize)
+
+
+my_list=[]
+with open('/usr/share/databases/Fanfiction/stories_orig.csv','r')as csvfile:
+        lines = csv.reader(csvfile, dialect='excel')
+        for row in lines:
+                my_list.append(row)
+print(my_list[0])
+
+my_dict={}
+x=0
+for element in my_list:
+        my_dict[element[11]]=element
+
+In Linux we can do sort /usr/share/databases/Fanfiction/stories_orig.csv|uniq
 
